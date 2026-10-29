@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Web Proxy Browser</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f0f2f5; 
+        }
+        .browser-container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        /* Top Navigation Bar / Search Bar */
+        .nav-bar { 
+            display: flex; 
+            gap: 10px; 
+            padding: 12px; 
+            background: #e3e6e9; 
+            border-bottom: 1px solid #ccc; 
+            align-items: center;
+        }
+        .search-input { 
+            flex: 1; 
+            padding: 8px 12px; 
+            border: 1px solid #bbb; 
+            border-radius: 20px; 
+            font-size: 14px; 
+            outline: none;
+        }
+        .search-input:focus { border-color: #007bff; }
+        .go-btn { 
+            padding: 8px 20px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        .go-btn:hover { background: #0056b3; }
+        
+        /* Main Preview Window */
+        .view-pane { 
+            width: 100%; 
+            height: 600px; 
+            border: none; 
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        .status-msg { color: #666; font-style: italic; text-align: center; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="browser-container">
+        <!-- Search / Address Bar Interface -->
+        <div class="nav-bar">
+            <input 
+                type="text" 
+                id="addressBar" 
+                class="search-input" 
+                value="https://example.com" 
+                placeholder="Type a URL here (e.g., https://example.com) and press Enter"
+            >
+            <button class="go-btn" onclick="loadUrl()">Go</button>
+        </div>
+
+        <!-- The Viewport (Renders the proxied website) -->
+        <div id="viewPane" class="view-pane">
+            <p class="status-msg">Enter a URL above and click "Go" to browse via the proxy.</p>
+        </div>
+    </div>
+
+    <script>
+        // Listen for the "Enter" key inside the search bar
+        document.getElementById('addressBar').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadUrl();
+            }
+        });
+
+        async function loadUrl() {
+            let inputUrl = document.getElementById('addressBar').value.trim();
+            const viewPane = document.getElementById('viewPane');
+            
+            if (!inputUrl) return;
+
+            // Automatically prepending https:// if the user forgets it
+            if (!/^https?:\/\//i.test(inputUrl)) {
+                inputUrl = 'https://' + inputUrl;
+                document.getElementById('addressBar').value = inputUrl;
+            }
+
+            viewPane.innerHTML = `<p class="status-msg">Proxying request to ${inputUrl}...</p>`;
+
+            // Using the public CORS proxy to grab the target page data
+            const proxyUrl = `https://allorigins.win{encodeURIComponent(inputUrl)}`;
+
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('Could not fetch the page.');
+                
+                const data = await response.json();
+                
+                if (data.contents) {
+                    // Inject the raw HTML safely into our preview container
+                    viewPane.innerHTML = data.contents;
+                } else {
+                    viewPane.innerHTML = `<p class="status-msg" style="color:red;">Error: No content returned.</p>`;
+                }
+            } catch (error) {
+                viewPane.innerHTML = `<p class="status-msg" style="color:red;">Proxy Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
