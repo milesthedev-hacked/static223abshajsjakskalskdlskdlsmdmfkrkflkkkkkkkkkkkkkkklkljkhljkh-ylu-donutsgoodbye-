@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Web Viewer</title>
+    <title>Math Study Guide</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -13,7 +13,7 @@
             background-color: #f0f2f5; 
         }
         .browser-container { 
-            max-width: 1000px; 
+            max-width: 1100px; 
             margin: 0 auto; 
             background: #fff; 
             border-radius: 8px; 
@@ -51,7 +51,7 @@
         /* The Iframe Viewport */
         .view-frame { 
             width: 100%; 
-            height: 650px; 
+            height: 700px; 
             border: none; 
             background: #fafafa;
         }
@@ -66,14 +66,14 @@
                 type="text" 
                 id="addressBar" 
                 class="search-input" 
-                value="https://example.com" 
-                placeholder="Type a website address here and press Enter..."
+                value="example.com" 
+                placeholder="Type a website address here (e.g. wikipedia.org) and press Enter..."
             >
             <button class="go-btn" onclick="browseUrl()">Go</button>
         </div>
 
         <!-- Embedded Frame Window -->
-        <iframe id="viewFrame" class="view-frame" src="https://example.com"></iframe>
+        <iframe id="viewFrame" class="view-frame" src="https://anonymouse.org"></iframe>
     </div>
 
     <script>
@@ -90,17 +90,14 @@
             
             if (!inputUrl) return;
 
-            // Automatically prepend https:// if missing
-            if (!/^https?:\/\//i.test(inputUrl)) {
-                inputUrl = 'https://' + inputUrl;
-                document.getElementById('addressBar').value = inputUrl;
-            }
+            // Strip out any http:// or https:// that the user typed to format cleanly for the proxy
+            inputUrl = inputUrl.replace(/^https?:\/\//i, '');
 
-            // Using a standard embed wrapper engine to strip frame blocks seamlessly
-            const finalEmbedUrl = `https://images~://googleusercontent.com{encodeURIComponent(inputUrl)}`;
+            // Use the Anonymouse CGI Engine to completely bypass X-Frame-Options blocks
+            const proxyGatewayUrl = `https://anonymouse.org{inputUrl}`;
             
-            // Update the iframe target src
-            viewFrame.src = finalEmbedUrl;
+            // Force the iframe to render via the new proxy link
+            viewFrame.src = proxyGatewayUrl;
         }
     </script>
 
